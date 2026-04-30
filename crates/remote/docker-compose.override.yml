@@ -1,10 +1,20 @@
 # Self-hosting overrides for agent-sandbox VM.
-# Bind-mounts Postgres and Electric persistent state onto the Incus vk-data
-# volume so VM rebuilds preserve kanban data.
+#
+# Postgres data is bind-mounted onto the Incus vk-data volume (virtiofs)
+# so VM rebuilds preserve kanban state.
+#
+# Postgres restart policy is upgraded from upstream's "on-failure" to
+# "unless-stopped" so a clean shutdown (e.g. host reboot, docker daemon
+# restart) doesn't leave it down with the other services crash-looping
+# against an nxdomain remote-db.
+#
+# Electric persistent state is intentionally NOT bind-mounted because
+# Electric's shape-db SQLite doesn't play well with virtiofs - it
+# reports the file as corrupt on every restart. Electric state is
+# regenerable from Postgres on next start, so losing it on rebuild
+# is fine. We use Docker's default named volume instead.
 services:
   remote-db:
+    restart: unless-stopped
     volumes:
       - /var/lib/vibe-kanban/remote-postgres:/var/lib/postgresql/data
-  electric:
-    volumes:
-      - /var/lib/vibe-kanban/electric-persistent:/app/persistent
