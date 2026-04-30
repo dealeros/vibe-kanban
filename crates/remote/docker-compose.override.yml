@@ -1,0 +1,10 @@
+# Self-hosting overrides for agent-sandbox VM.
+# Bind-mounts Postgres and Electric persistent state onto the Incus vk-data
+# volume so VM rebuilds preserve kanban data.
+services:
+  remote-db:
+    volumes:
+      - /var/lib/vibe-kanban/remote-postgres:/var/lib/postgresql/data
+  electric:
+    volumes:
+      - /var/lib/vibe-kanban/electric-persistent:/app/persistent
